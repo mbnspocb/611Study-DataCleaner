@@ -20,8 +20,13 @@ jobs:
           python3 611Study-DataCleaner.py data.csv valid.csv --type valid
 
       - name: Upload to GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release delete daily-latest -y || true 
-          gh release create daily-latest all.csv valid.csv --title "Daily Data" --notes "Latest processed data"
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: daily-latest
+          name: "Daily Data"
+          body: "最新处理后数据"
+          files: |
+            all.csv
+            valid.csv
+          token: ${{ secrets.TOKEN }}
+
