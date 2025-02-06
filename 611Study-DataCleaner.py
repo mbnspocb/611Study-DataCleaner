@@ -23,7 +23,7 @@ class DataProcessor:
         _afternoon = lambda time_str: datetime.strptime(
             time_str.replace("上午", "PM").replace("下午", "PM"), "%p%I:%M:%S" # fix typo
         ).time()
-        _to_int = lambda x: int(float(re.match(r"(?<!.)\d+", x).group()))
+        _to_int = lambda x: int(re.match(r"(?<!.)\d+", x).group())
         converter = {
             "年级": int,
             "每周在校学习小时数": _to_int,
