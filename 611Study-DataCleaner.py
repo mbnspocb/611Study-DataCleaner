@@ -36,9 +36,9 @@ class DataProcessor:
         }
         invalid_limit = {
             "年级": range(0, 13),
-            "每周在校学习小时数": range(40, 169),
+            "每周在校学习小时数": range(40, 169), # 24*7=168
             "每月假期天数": range(-1, 16),
-            "寒假放假天数": range(-1, 31),
+            "寒假放假天数": range(-1, 60),
             "24年学生自杀数": range(-1, 51),
         }
         for _ in self.data:
