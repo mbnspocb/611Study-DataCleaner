@@ -68,7 +68,7 @@ class DataProcessor:
         return filtered_data
 
     def save_csv(self, csv_path, content: Literal["all", "valid"] = "all"):
-        with open(csv_path, mode="w", newline="", encoding="utf-8") as f:
+        with open(csv_path, mode="w", newline="", encoding="utf-8-sig") as f:
             fieldnames = [
                 "时间戳记",
                 "省份",
