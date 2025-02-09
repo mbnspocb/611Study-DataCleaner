@@ -11,7 +11,6 @@ class DataProcessor:
             self.data = data
         else:
             with open(data, newline="", encoding="utf-8") as f:
-
                 reader = csv.DictReader(
                     f,
                     fieldnames=[
@@ -44,7 +43,8 @@ class DataProcessor:
             if not match:
                 raise ValueError(f"无法识别的时间格式: {time_str}")
             period = match.group(1)
-            return 'AM' if period == "上午" else 'PM'
+            return "AM" if period == "上午" else "PM"
+
         def morning(time_str: str) -> time:
             day_period = parse_chinese_time(time_str)
             time_str = time_str.strip("上午").strip("下午").strip()
@@ -53,10 +53,15 @@ class DataProcessor:
         def afternoon(time_str: str) -> time:
             day_period = parse_chinese_time(time_str)
             time_str = time_str.strip("上午").strip("下午").strip()
-            return datetime.strptime(f"{day_period}{time_str}".replace('AM',"PM"), "%p%I:%M:%S").time() # fix typo
+            return datetime.strptime(
+                f"{day_period}{time_str}".replace("AM", "PM"), "%p%I:%M:%S"
+            ).time()  # fix typo
+
         def to_int(x):
             return int(re.match(r"(?<!.)\d+", x).group())
-
+        def correct_grade(x):
+            num = to_int(x)
+            return num if not (12 < num < 20) else 12
         def contains_chinese_only(s):
             # 匹配中文字符的Unicode范围
             chinese_regex = re.compile(r"[\u4e00-\u9fff]")
@@ -75,7 +80,7 @@ class DataProcessor:
             return has_chinese and not has_japanese_or_korean
 
         converter = {
-            "年级": int,
+            "年级": correct_grade,
             "每周在校学习小时数": to_int,
             "每月假期天数": float,
             "寒假放假天数": to_int,
