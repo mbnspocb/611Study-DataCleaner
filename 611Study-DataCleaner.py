@@ -39,15 +39,23 @@ class DataProcessor:
         self.format()
 
     def format(self):
-        _morning = lambda time_str: datetime.strptime(
-            time_str.replace("上午", "AM").replace("下午", "PM"), "%p%I:%M:%S"
-        ).time()
+        def parse_chinese_time(time_str: str) -> time:
+            match = re.search(r"(上午|下午)", time_str)
+            if not match:
+                raise ValueError(f"无法识别的时间格式: {time_str}")
+            period = match.group(1)
+            return 'AM' if period == "上午" else 'PM'
+        def morning(time_str: str) -> time:
+            day_period = parse_chinese_time(time_str)
+            time_str = time_str.strip("上午").strip("下午").strip()
+            return datetime.strptime(f"{day_period}{time_str}", "%p%I:%M:%S").time()
 
-        _afternoon = lambda time_str: datetime.strptime(
-            time_str.replace("上午", "PM").replace("下午", "PM"),
-            "%p%I:%M:%S",  # fix typo
-        ).time()
-        _to_int = lambda x: int(re.match(r"(?<!.)\d+", x).group())
+        def afternoon(time_str: str) -> time:
+            day_period = parse_chinese_time(time_str)
+            time_str = time_str.strip("上午").strip("下午").strip()
+            return datetime.strptime(f"{day_period}{time_str}".replace('AM',"PM"), "%p%I:%M:%S").time() # fix typo
+        def to_int(x):
+            return int(re.match(r"(?<!.)\d+", x).group())
 
         def contains_chinese_only(s):
             # 匹配中文字符的Unicode范围
@@ -68,13 +76,13 @@ class DataProcessor:
 
         converter = {
             "年级": int,
-            "每周在校学习小时数": _to_int,
+            "每周在校学习小时数": to_int,
             "每月假期天数": float,
-            "寒假放假天数": _to_int,
-            "24年学生自杀数": _to_int,
-            "上学时间": _morning,
-            "放学时间\n含晚自习": _afternoon,
-            "寒假补课收费总价格": _to_int,
+            "寒假放假天数": to_int,
+            "24年学生自杀数": to_int,
+            "上学时间": morning,
+            "放学时间\n含晚自习": afternoon,
+            "寒假补课收费总价格": to_int,
         }
         invalid_limit = {
             "城市": contains_chinese_only,
