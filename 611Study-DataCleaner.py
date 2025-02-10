@@ -3,38 +3,57 @@ import csv
 import re
 from datetime import datetime, time
 from typing import Literal
+from collections import Counter
 
 
 class DataProcessor:
-    def __init__(self, data: str | dict):
-        if isinstance(data, dict):
-            self.data = data
-        else:
-            with open(data, newline="", encoding="utf-8") as f:
+    def __init__(self, file: str):
+        self.file = file
+        self.guess_csv_header()
+        with open(file, newline="", encoding="utf-8") as f:
                 reader = csv.DictReader(
                     f,
-                    fieldnames=[
-                        "时间戳记",
-                        "省份",
-                        "城市",
-                        "区县",
-                        "学校名称",
-                        "年级",
-                        "寒假放假天数",
-                        "寒假补课收费总价格",
-                        "上学时间",
-                        "放学时间\n含晚自习",
-                        "每周在校学习小时数",
-                        "每月假期天数",
-                        "24年学生自杀数",
-                        "学生的评论",
-                        ""
-                    ],
+                    fieldnames=self.fieldnames,
                     skipinitialspace=True,
                 )
 
                 self.data = [row for row in reader]
         self.format()
+    def guess_csv_header(self):
+        with open(self.file, newline="", encoding="utf-8") as f:
+            rows = list(csv.reader(f))
+        first10 = rows[:20]
+        # 获取常见列数
+        mode_count = Counter(len(r) for r in first10).most_common(1)[0][0]
+        # 只选取列数匹配且第一列非空且不以数字开头的行
+        candidates = [
+            r
+            for r in first10
+            if len(r) == mode_count
+            and r[0].strip()
+            and not re.match(r"\d", r[0].strip())
+        ]
+
+        # 如果候选中包含标题关键词，则优先选择
+        header_keywords = ["时间戳记", "学校名称", "省份", "城市", "年级"]
+        keyword_candidates = [
+            r
+            for r in candidates
+            if any(kw in cell for cell in r for kw in header_keywords)
+        ]
+        if keyword_candidates:
+            candidates = keyword_candidates
+
+        if candidates:
+            # 选择平均字段长度最短的候选行
+            best = min(
+                candidates, key=lambda r: sum(len(cell.strip()) for cell in r) / len(r)
+            )
+            best = [_.replace('\r','') for _ in best] # windows 是 \r\n
+            self.fieldnames = best
+            print(f"可能的列标题：{','.join(best)!r}")
+            return
+        raise ValueError("无法识别 CSV 文件的标题行")
 
     def format(self):
         def parse_chinese_time(time_str: str) -> time:
@@ -55,7 +74,6 @@ class DataProcessor:
             return datetime.strptime(
                 f"{day_period}{time_str}".replace("AM", "PM"), "%p%I:%M:%S"
             ).time()  # fix typo
-
         def to_int(x):
             return int(re.match(r"(?<!.)\d+", x).group())
 
@@ -132,26 +150,9 @@ class DataProcessor:
 
     def save_csv(self, csv_path, content: Literal["all", "valid"] = "all"):
         with open(csv_path, mode="w", newline="", encoding="utf-8-sig") as f:
-            fieldnames = [
-                "时间戳记",
-                "省份",
-                "城市",
-                "区县",
-                "学校名称",
-                "年级",
-                "寒假放假天数",
-                "寒假补课收费总价格",
-                "上学时间",
-                "放学时间\n含晚自习",
-                "每周在校学习小时数",
-                "每月假期天数",
-                "24年学生自杀数",
-                "学生的评论",
-                "invalid",
-                "",
-            ]
-            if content == "valid":
-                fieldnames.remove("invalid")
+            fieldnames = self.fieldnames
+            if content == "all":
+                fieldnames.append("invalid")
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(self.data if content == "all" else self.get_valid())
