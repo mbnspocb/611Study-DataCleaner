@@ -20,21 +20,20 @@ class DataProcessor:
                         "区县",
                         "学校名称",
                         "年级",
-                        "每周在校学习小时数",
-                        "每月假期天数",
                         "寒假放假天数",
-                        "24年学生自杀数",
+                        "寒假补课收费总价格",
                         "上学时间",
                         "放学时间\n含晚自习",
-                        "寒假补课收费总价格",
+                        "每周在校学习小时数",
+                        "每月假期天数",
+                        "24年学生自杀数",
                         "学生的评论",
-                        "",
+                        ""
                     ],
                     skipinitialspace=True,
                 )
 
                 self.data = [row for row in reader]
-
         self.format()
 
     def format(self):
@@ -59,9 +58,11 @@ class DataProcessor:
 
         def to_int(x):
             return int(re.match(r"(?<!.)\d+", x).group())
+
         def correct_grade(x):
             num = to_int(x)
             return num if not (12 < num < 20) else 12
+
         def contains_chinese_only(s):
             # 匹配中文字符的Unicode范围
             chinese_regex = re.compile(r"[\u4e00-\u9fff]")
@@ -138,13 +139,13 @@ class DataProcessor:
                 "区县",
                 "学校名称",
                 "年级",
-                "每周在校学习小时数",
-                "每月假期天数",
                 "寒假放假天数",
-                "24年学生自杀数",
+                "寒假补课收费总价格",
                 "上学时间",
                 "放学时间\n含晚自习",
-                "寒假补课收费总价格",
+                "每周在校学习小时数",
+                "每月假期天数",
+                "24年学生自杀数",
                 "学生的评论",
                 "invalid",
                 "",
