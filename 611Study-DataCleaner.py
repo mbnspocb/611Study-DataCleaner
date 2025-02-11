@@ -22,7 +22,7 @@ class DataProcessor:
     def guess_csv_header(self):
         with open(self.file, newline="", encoding="utf-8") as f:
             rows = list(csv.reader(f))
-        first10 = rows[:20]
+        first10 = rows[:10]
         # 获取常见列数
         mode_count = Counter(len(r) for r in first10).most_common(1)[0][0]
         # 只选取列数匹配且第一列非空且不以数字开头的行
@@ -31,7 +31,7 @@ class DataProcessor:
             for r in first10
             if len(r) == mode_count
             and r[0].strip()
-            and not re.match(r"\d", r[0].strip())
+            and not re.match(r"\d+", r[0].strip())
         ]
 
         # 如果候选中包含标题关键词，则优先选择
@@ -75,7 +75,7 @@ class DataProcessor:
                 f"{day_period}{time_str}".replace("AM", "PM"), "%p%I:%M:%S"
             ).time()  # fix typo
         def to_int(x):
-            return int(re.match(r"(?<!.)\d+", x).group())
+            return int(re.match(r"^\d+", x).group())
 
         def correct_grade(x):
             num = to_int(x)
