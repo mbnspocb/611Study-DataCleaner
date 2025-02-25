@@ -24,14 +24,17 @@ jobs:
 
       - name: Get UTC+8 date
         id: date
-        run: echo "date=$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+        run: |
+         echo "date=$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+         echo "tag=$(TZ='Asia/Shanghai' date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: daily-latest
+          tag_name: ${{ steps.date.outputs.tag }}
           name: "Data Update ${{ steps.date.outputs.date }}"
-          body: "最新处理后数据"
+          body: "处理后数据"
           files: |
               all.csv
               valid.csv
