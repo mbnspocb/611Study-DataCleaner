@@ -22,14 +22,17 @@ jobs:
           python3 611Study-DataCleaner.py data.csv all.csv
           python3 611Study-DataCleaner.py data.csv valid.csv --type valid
 
+      - name: Get UTC+8 date
+        id: date
+        run: echo "date=$(TZ='Asia/Shanghai' date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: daily-latest
-          name: "Daily Data"
+          name: "Data Update ${{ steps.date.outputs.date }}"
           body: "最新处理后数据"
           files: |
-            all.csv
-            valid.csv
+              all.csv
+              valid.csv
           token: ${{ secrets.GITHUB_TOKEN }}
-
